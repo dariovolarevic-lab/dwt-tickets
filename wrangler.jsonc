@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": "custom-worker.ts",
+  "name": "dwt-vouchers",
+  "compatibility_date": "2025-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "vars": {
+    "AUTH_TRUST_HOST": "true"
+  },
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "dwt-vouchers"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dwt",
+      "database_id": "bd1f2cd5-44b1-4c96-9404-d3373adefd26",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

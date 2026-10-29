@@ -1,0 +1,46 @@
+{
+  "name": "tour-vouchers",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && node scripts/patch-workerd-deps.mjs && next build",
+    "postinstall": "prisma generate && node scripts/patch-workerd-deps.mjs",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "db:migrate:local": "wrangler d1 migrations apply dwt --local",
+    "db:migrate:remote": "wrangler d1 migrations apply dwt --remote",
+    "db:import": "node scripts/import-pg-backup.mjs"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.14",
+    "@prisma/adapter-d1": "^6.19.3",
+    "@prisma/client": "^6.19.0",
+    "@react-pdf/renderer": "^4.3.0",
+    "bcryptjs": "^3.0.2",
+    "exceljs": "^4.4.0",
+    "next": "^15.5.0",
+    "next-auth": "^5.0.0-beta.32",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22.0.0",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "postcss": "^8.5.0",
+    "prisma": "^6.19.0",
+    "tailwindcss": "^4.1.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "wrangler": "^4.156.0"
+  }
+}

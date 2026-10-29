@@ -1,0 +1,140 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  PARTNER
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(PARTNER)
+  status       UserStatus @default(PENDING)
+
+  // Agency details (for ADMIN users, agencyName is the operator's name)
+  agencyName    String
+  contactPerson String
+
+  // Short code used in voucher numbers, e.g. "AT" -> "DWT AT-00001-2026". Assigned by an admin on approval.
+  agencyCode        String? @unique
+  // Discount (commission) given to this agency, applied to newly issued vouchers
+  commissionPercent Decimal @default(0)
+  // Whether the agency may mark vouchers as "K" (separate numbering and report filter)
+  canUseK           Boolean @default(false)
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  approvedAt DateTime?
+
+  vouchers Voucher[]
+  counters VoucherCounter[]
+
+  @@index([role, status])
+}
+
+model Tour {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  meetingPoint   String
+  // Start times as a JSON array of "HH:mm" strings, e.g. ["10:00", "16:30"] (SQLite has no arrays; use lib/tour-times.ts)
+  departureTimes Json
+  // Money is stored as Decimal in the operator's currency
+  priceAdult     Decimal
+  priceChild     Decimal?
+  active         Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vouchers         Voucher[]
+  closedDepartures ClosedDeparture[]
+}
+
+model ClosedDeparture {
+  id        String   @id @default(cuid())
+  tourId    String
+  tour      Tour     @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  tourDate  DateTime
+  timeSlot  String
+  createdAt DateTime @default(now())
+
+  @@unique([tourId, tourDate, timeSlot])
+  @@index([tourDate])
+}
+
+model Voucher {
+  id   String @id @default(cuid())
+  // Human-readable unique code, also encoded in the QR code
+  code String @unique
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  tourId String
+  tour   Tour   @relation(fields: [tourId], references: [id], onDelete: Restrict)
+
+  // Booking details
+  leadGuestName String?
+  tourDate      DateTime
+  timeSlot      String // "HH:mm"
+  adults        Int
+  children      Int      @default(0)
+
+  // Price snapshot at time of issuing, so later tour price edits don't change billing
+  priceAdult Decimal
+  priceChild Decimal
+  totalPrice Decimal
+
+  // Commission snapshot at time of issuing: later changes to the agency's percent don't alter old vouchers
+  commissionPercent Decimal @default(0)
+  discountAmount    Decimal @default(0)
+  netAmount         Decimal @default(0)
+
+  // "K" vouchers have their own numbering sequence and report filter
+  isK Boolean @default(false)
+
+  // Random, unguessable token embedded in the QR link; used for the public guide check-in page
+  checkToken  String    @unique
+  // Set when a guide confirms the guests' arrival
+  checkedInAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([tourDate, timeSlot])
+  @@index([createdAt])
+  @@index([tourId])
+}
+
+// Simple key/value store for admin-editable settings (e.g. the hashed guide check-in PIN)
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// Last issued voucher number per agency, calendar year and K/non-K sequence
+model VoucherCounter {
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  year       Int
+  isK        Boolean
+  lastNumber Int     @default(0)
+
+  @@id([userId, year, isK])
+}
