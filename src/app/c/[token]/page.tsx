@@ -30,6 +30,7 @@ export default async function CheckInPage({ params }: { params: Promise<{ token:
           select: {
             code: true,
             tourDate: true,
+            originalTourDate: true,
             timeSlot: true,
             adults: true,
             children: true,
@@ -58,6 +59,9 @@ export default async function CheckInPage({ params }: { params: Promise<{ token:
     ["Voucher", voucher.code],
     ["Tour", voucher.tour.name],
     ["Date", dateFmt.format(voucher.tourDate)],
+    ...(voucher.originalTourDate
+      ? ([["Originally booked", dateFmt.format(voucher.originalTourDate)]] as [string, string][])
+      : []),
     ["Departure", voucher.timeSlot],
     ["Guests", `${voucher.adults + voucher.children} (${voucher.adults} adults${voucher.children ? `, ${voucher.children} children` : ""})`],
     ["Agency", voucher.user.agencyName],
@@ -90,7 +94,8 @@ export default async function CheckInPage({ params }: { params: Promise<{ token:
     <Shell tone="ok" title="✓ Valid voucher">
       {tourDay !== today && (
         <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          Warning: this voucher is for {dateFmt.format(voucher.tourDate)}, not today.
+          Note: this voucher is for {dateFmt.format(voucher.tourDate)}, not today. Confirming arrival will move it to
+          today ({dateFmt.format(new Date(`${today}T00:00:00.000Z`))}).
         </p>
       )}
       {details}

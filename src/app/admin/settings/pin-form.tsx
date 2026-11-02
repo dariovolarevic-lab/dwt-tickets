@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { btn, fieldClass } from "@/components/ui";
+import { PIN_MAX_LENGTH } from "@/lib/pin-rules";
 import { setGuidePinAction, type PinFormState } from "./actions";
 
 export function PinForm({ hasPin }: { hasPin: boolean }) {
@@ -14,8 +15,7 @@ export function PinForm({ hasPin }: { hasPin: boolean }) {
         <input
           name="pin"
           type="password"
-          inputMode="numeric"
-          pattern="\d{4,10}"
+          maxLength={PIN_MAX_LENGTH}
           autoComplete="new-password"
           required
           className={fieldClass}
@@ -26,8 +26,7 @@ export function PinForm({ hasPin }: { hasPin: boolean }) {
         <input
           name="confirm"
           type="password"
-          inputMode="numeric"
-          pattern="\d{4,10}"
+          maxLength={PIN_MAX_LENGTH}
           autoComplete="new-password"
           required
           className={fieldClass}

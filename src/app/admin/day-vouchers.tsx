@@ -4,6 +4,7 @@ import { PageHeader, Placeholder } from "@/components/dashboard-shell";
 import { btn } from "@/components/ui";
 
 const dateFmt = new Intl.DateTimeFormat("hr-HR", { dateStyle: "full", timeZone: "UTC" });
+const shortDateFmt = new Intl.DateTimeFormat("hr-HR", { day: "numeric", month: "numeric", timeZone: "UTC" });
 const timeFmt = new Intl.DateTimeFormat("hr-HR", { timeStyle: "short", timeZone: "Europe/Zagreb" });
 
 export function todayInZagreb() {
@@ -41,6 +42,7 @@ export async function DayVouchers({ day, title, navPath }: { day: string; title:
       children: true,
       isK: true,
       checkedInAt: true,
+      originalTourDate: true,
       tour: { select: { name: true } },
       user: { select: { agencyName: true } },
     },
@@ -118,6 +120,11 @@ export async function DayVouchers({ day, title, navPath }: { day: string; title:
                               {v.isK && (
                                 <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-800">
                                   K
+                                </span>
+                              )}
+                              {v.originalTourDate && (
+                                <span className="ml-2 rounded bg-sky-100 px-1.5 py-0.5 font-sans text-xs font-medium text-sky-800">
+                                  prebačeno s {shortDateFmt.format(v.originalTourDate)}
                                 </span>
                               )}
                             </td>

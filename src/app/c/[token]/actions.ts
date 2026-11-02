@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import {
   PIN_COOKIE,
-  PIN_RE,
+  PIN_MAX_LENGTH,
   clearPinFailures,
   getPinHash,
   isValidPinCookie,
@@ -30,7 +30,7 @@ export async function confirmArrivalAction(token: string, _prev: ConfirmState, f
     if (locked) return { error: `Too many wrong attempts. Try again in ${locked} min.` };
 
     const pin = String(formData.get("pin") ?? "");
-    if (!PIN_RE.test(pin) || !(await bcrypt.compare(pin, pinHash))) {
+    if (!pin || pin.length > PIN_MAX_LENGTH || !(await bcrypt.compare(pin, pinHash))) {
       registerPinFailure(client);
       return { error: "Incorrect PIN." };
     }
@@ -45,7 +45,20 @@ export async function confirmArrivalAction(token: string, _prev: ConfirmState, f
   }
 
   // Only the first confirmation wins, so double scans can't overwrite the arrival time
-  await prisma.voucher.updateMany({ where: { checkToken: token, checkedInAt: null }, data: { checkedInAt: new Date() } });
+  const voucher = await prisma.voucher.findUnique({ where: { checkToken: token }, select: { tourDate: true } });
+  if (!voucher) return { error: "Voucher not found." };
+
+  // Guests who come on another day are moved to the day they actually arrived
+  const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Zagreb" }).format(new Date());
+  const moved = voucher.tourDate.toISOString().slice(0, 10) !== today;
+
+  await prisma.voucher.updateMany({
+    where: { checkToken: token, checkedInAt: null },
+    data: {
+      checkedInAt: new Date(),
+      ...(moved ? { tourDate: new Date(`${today}T00:00:00.000Z`), originalTourDate: voucher.tourDate } : {}),
+    },
+  });
 
   revalidatePath(`/c/${token}`);
   revalidatePath("/admin");

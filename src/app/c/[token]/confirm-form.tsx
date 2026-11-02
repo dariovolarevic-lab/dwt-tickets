@@ -14,9 +14,10 @@ export function ConfirmForm({ token, needsPin }: { token: string; needsPin: bool
           <input
             name="pin"
             type="password"
-            inputMode="numeric"
-            pattern="\d*"
             autoComplete="off"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             required
             className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-3 text-center text-xl tracking-widest shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
           />

@@ -91,6 +91,8 @@ model Voucher {
   // Booking details
   leadGuestName String?
   tourDate      DateTime
+  // Booked date, kept when check-in on another day moved tourDate to the actual arrival day
+  originalTourDate DateTime?
   timeSlot      String // "HH:mm"
   adults        Int
   children      Int      @default(0)

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export const PIN_SETTING_KEY = "guidePinHash";
 export const PIN_COOKIE = "guide_pin";
-export const PIN_RE = /^\d{4,10}$/;
+export { PIN_MAX_LENGTH } from "./pin-rules";
 
 export function newCheckToken() {
   return randomBytes(18).toString("base64url");
